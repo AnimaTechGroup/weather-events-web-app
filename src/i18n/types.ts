@@ -15,6 +15,7 @@ export type HazardCopy = {
   timelineNote: string;
   timelineCaption: string;
   barLabel: string;
+  barTip: string;
   filterTitle: string;
   filterLede: string;
   searchLabel: string;
@@ -24,6 +25,12 @@ export type HazardCopy = {
   eventMany: string;
   empty: string;
   share: string;
+  rankEyebrow: string;
+  rankTitle: string;
+  rankLede: string;
+  rankCaption: string;
+  rankRowLabel: string;
+  rankEmpty: string;
   footer: string;
 };
 
@@ -40,9 +47,20 @@ export type Messages = {
     page: string;
     hazards: string;
     thisYear: string;
+    lastYear: string;
     timeline: string;
     country: string;
+    places: string;
     language: string;
+  };
+  map: {
+    title: string;
+    hint: string;
+    reset: string;
+    zoomIn: string;
+    zoomOut: string;
+    legendZero: string;
+    legendMore: string;
   };
   hazard: {
     quakes: HazardCopy;
@@ -55,8 +73,15 @@ export type Messages = {
   };
   hero: {
     soFar: string;
+    yearLabel: string;
     yearOpen: string;
     yearFull: string;
+    vsLastYearMore: string;
+    vsLastYearLess: string;
+    vsLastYearSame: string;
+    vsPriorYearMore: string;
+    vsPriorYearLess: string;
+    vsPriorYearSame: string;
   };
   country: {
     eyebrow: string;
@@ -64,6 +89,16 @@ export type Messages = {
   footer: {
     dataMock: string;
     dataLake: string;
+  };
+  auth: {
+    title: string;
+    lede: string;
+    email: string;
+    password: string;
+    signIn: string;
+    signingIn: string;
+    signOut: string;
+    loginFailed: string;
   };
   countries: Record<string, string>;
   states: Record<string, string>;

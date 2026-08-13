@@ -1,4 +1,4 @@
-import { env, isRemoteGold } from "@/config/env";
+import { env, isApiGold, isMockGold, isRemoteGold } from "@/config/env";
 import { mockCyclonesYearly, mockCyclonesYearlyByBasin } from "@/data/gold/mockCyclones";
 import { mockQuakesYearly, mockQuakesYearlyByCountry } from "@/data/gold/mockQuakes";
 import { mockTornadoesYearly, mockTornadoesYearlyByState } from "@/data/gold/mockTornadoes";
@@ -16,16 +16,20 @@ const REMOTE_FILES: Record<HazardId, { yearly: string; byRegion: string }> = {
   cyclones: { yearly: "cyclones_yearly.json", byRegion: "cyclones_yearly_by_basin.json" },
 };
 
-async function fetchJson<T>(url: string): Promise<T> {
-  const response = await fetch(url);
+async function fetchJson<T>(url: string, apiKey?: string): Promise<T> {
+  const headers: HeadersInit = {};
+  if (apiKey) {
+    headers["X-Gold-Api-Key"] = apiKey;
+  }
+  const response = await fetch(url, { headers });
   if (!response.ok) {
-    throw new Error(`Gold request failed (${response.status}): ${url}`);
+    throw new Error(`Data request failed (${response.status})`);
   }
   return response.json() as Promise<T>;
 }
 
 export async function loadHazardGold(hazard: HazardId): Promise<GoldBundle> {
-  if (!isRemoteGold) {
+  if (isMockGold) {
     return {
       hazard,
       ...MOCKS[hazard],
@@ -34,17 +38,35 @@ export async function loadHazardGold(hazard: HazardId): Promise<GoldBundle> {
     };
   }
 
-  const files = REMOTE_FILES[hazard];
-  const [yearly, byRegion] = await Promise.all([
-    fetchJson<GoldYearlyRow[]>(`${env.goldBaseUrl}/${files.yearly}`),
-    fetchJson<GoldYearlyByRegionRow[]>(`${env.goldBaseUrl}/${files.byRegion}`),
-  ]);
+  if (isApiGold) {
+    const base = env.goldApiUrl;
+    const [yearly, byRegion] = await Promise.all([
+      fetchJson<GoldYearlyRow[]>(`${base}/v1/${hazard}/yearly`, env.goldApiKey),
+      fetchJson<GoldYearlyByRegionRow[]>(`${base}/v1/${hazard}/by-region`, env.goldApiKey),
+    ]);
+    return {
+      hazard,
+      yearly,
+      byRegion,
+      source: "remote",
+      generatedAt: new Date().toISOString(),
+    };
+  }
 
-  return {
-    hazard,
-    yearly,
-    byRegion,
-    source: "remote",
-    generatedAt: new Date().toISOString(),
-  };
+  if (isRemoteGold) {
+    const files = REMOTE_FILES[hazard];
+    const [yearly, byRegion] = await Promise.all([
+      fetchJson<GoldYearlyRow[]>(`${env.goldBaseUrl}/${files.yearly}`),
+      fetchJson<GoldYearlyByRegionRow[]>(`${env.goldBaseUrl}/${files.byRegion}`),
+    ]);
+    return {
+      hazard,
+      yearly,
+      byRegion,
+      source: "remote",
+      generatedAt: new Date().toISOString(),
+    };
+  }
+
+  throw new Error("Data source is not configured");
 }

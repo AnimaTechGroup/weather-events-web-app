@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { currentYearFromGold, DEFAULT_REGION, regionsFromGold, sortYearsDesc } from "@/lib/gold";
+import { DEFAULT_REGION, featuredYearFromGold, regionsFromGold, sortYearsDesc } from "@/lib/gold";
 import { loadHazardGold } from "@/services/goldHazards";
 import type { GoldBundle, HazardId, RegionOption } from "@/types/gold";
 
@@ -23,7 +23,7 @@ export function useHazardGold(hazard: HazardId) {
         if (!cancelled) {
           setState({
             status: "error",
-            message: error instanceof Error ? error.message : "Could not load gold data",
+            message: error instanceof Error ? error.message : "Could not load data",
           });
         }
       });
@@ -48,7 +48,7 @@ export function useHazardGold(hazard: HazardId) {
     return {
       yearlyDesc: sortYearsDesc(state.data.yearly),
       regions,
-      currentYear: currentYearFromGold(state.data.yearly),
+      currentYear: featuredYearFromGold(state.data.yearly, hazard),
       defaultRegion: regions.some((region) => region.iso === preferred)
         ? preferred
         : (regions[0]?.iso ?? preferred),

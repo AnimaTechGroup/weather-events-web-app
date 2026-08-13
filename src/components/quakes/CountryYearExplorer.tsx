@@ -1,3 +1,4 @@
+import { QuakeWorldMap } from "@/components/quakes/QuakeWorldMap";
 import { useLocale } from "@/context/LocaleContext";
 import { formatCount, formatSeverity } from "@/lib/format";
 import { regionYearRow, worldShare } from "@/lib/gold";
@@ -45,7 +46,11 @@ export function CountryYearExplorer({
     );
   });
 
-  const selected = labeled.find((region) => region.iso === regionIso) ?? labeled[0];
+  const selected =
+    labeled.find((region) => region.iso === regionIso) ??
+    (regionIso
+      ? { iso: regionIso, name: regionName(regionIso, regionIso), label: regionName(regionIso, regionIso) }
+      : labeled[0]);
   const selectedRow = selected ? regionYearRow(byRegion, year, selected.iso) : undefined;
   const worldRow = yearly.find((row) => row.year === year);
   const count = selectedRow?.event_count ?? 0;
@@ -59,6 +64,18 @@ export function CountryYearExplorer({
           <h2>{t(`hazard.${hazard}.filterTitle`)}</h2>
           <p>{t(`hazard.${hazard}.filterLede`)}</p>
         </div>
+
+        {hazard === "quakes" ? (
+          <QuakeWorldMap
+            year={year}
+            regionIso={selected?.iso ?? regionIso}
+            byRegion={byRegion}
+            onSelectCountry={(iso) => {
+              onQueryChange("");
+              onRegionChange(iso);
+            }}
+          />
+        ) : null}
 
         <div className="country-panel">
           <div>
@@ -80,6 +97,9 @@ export function CountryYearExplorer({
                 value={selected?.iso ?? ""}
                 onChange={(event) => onRegionChange(event.target.value)}
               >
+                {selected && !filtered.some((region) => region.iso === selected.iso) ? (
+                  <option value={selected.iso}>{selected.label}</option>
+                ) : null}
                 {filtered.map((region) => (
                   <option key={region.iso} value={region.iso}>
                     {region.label}

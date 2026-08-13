@@ -18,16 +18,16 @@ function shouldLabelYear(year: number, first: number, last: number): boolean {
 
 export function YearTimeline({ hazard, rows, activeYear, onSelectYear }: YearTimelineProps) {
   const { t, localeTag } = useLocale();
-  const yearsAsc = useMemo(
-    () => [...rows].sort((left, right) => left.year - right.year),
+  const yearsDesc = useMemo(
+    () => [...rows].sort((left, right) => right.year - left.year),
     [rows],
   );
 
-  const maxCount = Math.max(...yearsAsc.map((row) => row.event_count), 1);
+  const maxCount = Math.max(...yearsDesc.map((row) => row.event_count), 1);
   const yMax = niceCeil(maxCount);
   const ticks = yTicks(yMax).reverse();
-  const firstYear = yearsAsc[0]?.year ?? 1950;
-  const lastYear = yearsAsc[yearsAsc.length - 1]?.year ?? 2026;
+  const firstYear = yearsDesc[yearsDesc.length - 1]?.year ?? 1950;
+  const lastYear = yearsDesc[0]?.year ?? 2026;
 
   return (
     <section className="section" id="timeline">
@@ -53,7 +53,7 @@ export function YearTimeline({ hazard, rows, activeYear, onSelectYear }: YearTim
             <div className="year-chart__scroll">
               <div
                 className="year-chart__plot"
-                style={{ "--bar-count": yearsAsc.length } as CSSProperties}
+                style={{ "--bar-count": yearsDesc.length } as CSSProperties}
               >
                 <div className="year-chart__grid" aria-hidden="true">
                   {ticks.map((tick) => (
@@ -62,9 +62,10 @@ export function YearTimeline({ hazard, rows, activeYear, onSelectYear }: YearTim
                 </div>
 
                 <div className="year-chart__bars">
-                  {yearsAsc.map((row) => {
+                  {yearsDesc.map((row) => {
                     const height = Math.max(2, (row.event_count / yMax) * 100);
-                    const labeled = shouldLabelYear(row.year, firstYear, lastYear);
+                    const labeled =
+                      shouldLabelYear(row.year, firstYear, lastYear) || row.year === activeYear;
 
                     return (
                       <button
@@ -80,7 +81,9 @@ export function YearTimeline({ hazard, rows, activeYear, onSelectYear }: YearTim
                         })}
                       >
                         <span className="year-chart__tip" aria-hidden="true">
-                          {row.year}
+                          {t(`hazard.${hazard}.barTip`, {
+                            count: formatCount(row.event_count, localeTag),
+                          })}
                         </span>
                         <span className="year-chart__bar" />
                         <span className={`year-chart__x${labeled ? " is-on" : ""}`}>

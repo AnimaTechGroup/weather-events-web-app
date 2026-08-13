@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { CountryYearExplorer } from "@/components/quakes/CountryYearExplorer";
 import { HeroYearTotal } from "@/components/quakes/HeroYearTotal";
+import { RegionRanking } from "@/components/quakes/RegionRanking";
 import { YearTimeline } from "@/components/quakes/YearTimeline";
+import { HazardLoading } from "@/components/layout/HazardLoading";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { useLocale } from "@/context/LocaleContext";
 import { useActiveHazard } from "@/hooks/useActiveHazard";
 import { useHazardGold } from "@/hooks/useHazardGold";
-import { rowForYear } from "@/lib/gold";
+import { rowForYear, isYearlyPublishHazard } from "@/lib/gold";
 
 export function App() {
   const { t } = useLocale();
@@ -27,7 +29,7 @@ export function App() {
     return (
       <div className="app">
         <SiteHeader hazard={hazard} onHazardChange={setHazard} />
-        <p className="status">{t("status.loading")}</p>
+        <HazardLoading hazard={hazard} />
       </div>
     );
   }
@@ -46,11 +48,24 @@ export function App() {
     return <p className="status">{t("status.missingYear")}</p>;
   }
 
+  const previousRow = rowForYear(state.data.yearly, currentYear - 1);
+
+  const selectRegionFromRanking = (iso: string) => {
+    setRegionIso(iso);
+    setRegionQuery("");
+    document.getElementById("country")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <div className="app" id="top">
       <SiteHeader hazard={hazard} onHazardChange={setHazard} />
-      <main>
-        <HeroYearTotal hazard={hazard} row={currentRow} isPartialYear />
+      <main className="hazard-main" key={hazard}>
+        <HeroYearTotal
+          hazard={hazard}
+          row={currentRow}
+          previousRow={previousRow}
+          isPartialYear={!isYearlyPublishHazard(hazard)}
+        />
         <YearTimeline
           hazard={hazard}
           rows={yearlyDesc}
@@ -67,6 +82,14 @@ export function App() {
           byRegion={state.data.byRegion}
           onRegionChange={setRegionIso}
           onQueryChange={setRegionQuery}
+        />
+        <RegionRanking
+          hazard={hazard}
+          year={currentYear}
+          yearly={state.data.yearly}
+          byRegion={state.data.byRegion}
+          selectedIso={regionIso}
+          onSelectRegion={selectRegionFromRanking}
         />
       </main>
       <SiteFooter

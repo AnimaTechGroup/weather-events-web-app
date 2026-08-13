@@ -42,7 +42,7 @@ export function SiteHeader({ hazard, onHazardChange }: SiteHeaderProps) {
                 scrollToId("this-year");
               }}
             >
-              {t("nav.thisYear")}
+              {t(hazard === "tornadoes" ? "nav.lastYear" : "nav.thisYear")}
             </a>
             <a
               href="#timeline"
@@ -61,6 +61,15 @@ export function SiteHeader({ hazard, onHazardChange }: SiteHeaderProps) {
               }}
             >
               {t("nav.country")}
+            </a>
+            <a
+              href="#places"
+              onClick={(event) => {
+                event.preventDefault();
+                scrollToId("places");
+              }}
+            >
+              {t("nav.places")}
             </a>
           </nav>
           <LanguageSwitch />
